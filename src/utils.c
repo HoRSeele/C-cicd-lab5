@@ -1,7 +1,10 @@
 #include "utils.h"
 
-int factorial(int n) {
-    if (n < 0) return -1; // Lỗi
-    if (n == 0) return 1;
-    return n * factorial(n - 1);
+unsigned long long factorial(int n) {
+    if (n < 0) return 0;
+    unsigned long long result = 1;
+    for (int i = 1; i <= n; ++i) {
+        result *= i;
+    }
+    return result;
 }
