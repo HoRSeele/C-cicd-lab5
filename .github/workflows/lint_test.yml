@@ -1,0 +1,44 @@
+name: C Quality Control (Lint & Test)
+
+on:
+  push:
+    branches:
+      - main
+      - 'feature/*'
+
+  pull_request:
+    branches:
+      - main
+jobs:
+  quality-check:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout mã nguồn
+        uses: actions/checkout@v4
+
+      - name: Cài đặt trình biên dịch và công cụ
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc cmake make cppcheck
+
+      - name: Kiểm tra phong cách và lỗi logic (Linting)
+        # --inline-suppr: Cho phép chặn lỗi bằng comment trong code
+        # --suppress=missingInclude: Bỏ qua lỗi không tìm thấy file header 
+        #thư viện ngoài
+        # --suppress=unusedFunction:tests/test_utils.c: Đặc cách cho các hàm 
+        #setUp/tearDown của Unity
+        run: |
+          cppcheck --enable=all --inline-suppr --error-exitcode=1 \
+          --suppress=missingInclude \
+          --suppress=unusedFunction:tests/test_utils.c \
+          -I src src/ tests/
+
+      - name: Cấu hình và Biên dịch Dự án
+        run: |
+          cmake -S . -B build
+          cmake --build build
+
+      - name: Thực thi Unit Tests
+        run: |
+          cd build && ctest --output-on-failure
